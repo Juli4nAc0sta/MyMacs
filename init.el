@@ -55,16 +55,33 @@
 (require 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 (flycheck-add-mode 'javascript-eslint 'web-mode)
-(eval-after-load 'flycheck
-  '(custom-set-variables
-    '(flycheck-disabled-checkers '(javascript-jshint javascript-jscs))))
-
+(setq-default flycheck-temp-prefix ".flycheck")
+;; use local eslint from node_modules before global
+(defun eslint-from-node-modules ()
+  "Find executable file named eslint.js from the node_modules directory."
+  (let* ((root (locate-dominating-file
+                (or (buffer-file-name) default-directory)
+                "node_modules"))
+         (eslint (and root
+                      (expand-file-name "node_modules/eslint/bin/eslint.js"
+                                        root))))
+    (when (and eslint (file-executable-p eslint))
+      (setq-local flycheck-javascript-eslint-executable eslint))))
+(add-hook 'flycheck-mode-hook #'eslint-from-node-modules)
 
 (require 'web-mode)
+
+(setq web-mode-markup-indent-offset 2)
+(setq web-mode-css-indent-offset 2)
+(setq web-mode-code-indent-offset 2)
+(setq web-mode-style-padding 0)
+(setq web-mode-script-padding 0)
+(setq web-mode-block-padding 0)
 
 (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.vue\\'" . web-mode))
 
 ;; Local Variables:
